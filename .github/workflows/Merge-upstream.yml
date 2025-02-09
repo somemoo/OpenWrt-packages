@@ -1,0 +1,167 @@
+name: Merge-upstream  
+
+on:  
+  push:  
+    branches:  
+      - lede  
+      - openwrt  
+      - immortalwrt    
+  schedule:  
+    - cron: '0 */6 * * *'  # 每6小时执行一次  
+  workflow_dispatch: 
+    inputs:
+      ssh:
+        description: 'ssh'
+        required: false
+        default: 'false'
+  watch:  
+    types: started  
+
+jobs:  
+  update-packages:  
+    if: github.event.repository.owner.id == github.event.sender.id || !github.event.sender.id || github.event.sender.id == 71822883  
+    runs-on: ubuntu-latest  
+    strategy:  
+      matrix:  
+        branch: [lede, openwrt, immortalwrt]  
+
+    steps:  
+      - name: Checkout  
+        uses: actions/checkout@v2  
+        with:  
+          ref: ${{ matrix.branch }}  
+
+      - uses: de-vri-es/setup-git-credentials@v2  
+        with:  
+          credentials: https://vison-v:${{ secrets.REPO_TOKEN }}@github.com/  
+    
+      - name: Set git identity  
+        run: |  
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"  
+          git config --global user.name "github-actions[bot]"  
+          sudo timedatectl set-timezone "Asia/Shanghai"  
+    
+      - name: Fetch Remote Changes  
+        run: |  
+          git fetch origin ${{ matrix.branch }}  
+     
+      - name: Sync upstream  
+        run: |  
+          shopt -s extglob  
+          set +e  
+          git rm -r --cache * >/dev/null 2>&1 &  
+          rm -rf `find ./* -maxdepth 0 -type d` >/dev/null 2>&1  
+          
+          function git_clone() {  
+            git clone --depth 1 $1 $2  
+            if [ "$?" != 0 ]; then  
+              echo "error on $1"  
+              pid="$( ps -q $$ )"  
+              kill $pid  
+            fi  
+          }  
+          
+          function git_sparse_clone() {  
+            trap 'rm -rf "$tmpdir"' EXIT  
+            branch="$1"; shift  
+            curl="$1"; shift  
+            rootdir="$PWD"  
+            tmpdir="$(mktemp -d)" || exit 1  
+            if [ ${#branch} -lt 10 ]; then  
+              git clone -b "$branch" --depth 1 --filter=blob:none --sparse "$curl" "$tmpdir"  
+              cd "$tmpdir"  
+            else  
+              git clone --filter=blob:none --sparse "$curl" "$tmpdir"  
+              cd "$tmpdir"  
+              git checkout "$branch"  
+            fi  
+            if [ "$?" != 0 ]; then  
+              echo "error on $curl"  
+              exit 1  
+            fi  
+            git sparse-checkout init --cone  
+            git sparse-checkout set "$@"  
+            mv -n $@ "$rootdir/" || true  
+            cd "$rootdir"  
+          }  
+          
+          function mvdir() {  
+            mv -n `find $1/* -maxdepth 0 -type d` ./  
+            rm -rf $1  
+          }  
+         
+          git_clone https://github.com/xiaorouji/openwrt-passwall passwall && mv -n passwall/luci-app-passwall ./; rm -rf passwall  
+          git_clone https://github.com/xiaorouji/openwrt-passwall2 passwall2 && mv -n passwall2/luci-app-passwall2 ./; rm -rf passwall2  
+          git_clone https://github.com/xiaorouji/openwrt-passwall-packages passwaii && rm -rf passwaii/{geoview,.github} && mvdir passwaii  
+          git_clone https://github.com/kenzok8/small && rm -rf small/{luci-app-passwall,luci-app-passwall2} && mvdir small  
+          git_clone https://github.com/kenzok8/golang lang && mkdir golang && mv -n `find lang/* -maxdepth 0` ./golang; rm -rf lang  
+          git_clone https://github.com/pymumu/openwrt-smartdns && mkdir smartdns && mv -n `find openwrt-smartdns/* -maxdepth 0` ./smartdns; rm -rf openwrt-smartdns  
+          git_clone https://github.com/pymumu/luci-app-smartdns smart && mkdir luci-app-smartdns && mv -n `find smart/* -maxdepth 0` ./luci-app-smartdns; rm -rf smart  
+      
+          git_clone https://github.com/vison-v/luci-app-nginx-proxy nginx-proxy && mkdir luci-app-nginx-proxy && mv -n nginx-proxy/* ./luci-app-nginx-proxy; rm -rf nginx-proxy  
+          
+          git_sparse_clone main "https://github.com/gdy666/luci-app-lucky" luci-app-lucky lucky  
+          git_sparse_clone main "https://github.com/kiddin9/kwrt-packages.git" luci-app-tcpdump luci-app-eqosplus luci-app-oaf open-app-filter oaf luci-app-wrtbwmon wrtbwmon
+          # 更新 lede 分支  
+          if [ "${{ matrix.branch }}" == "lede" ]; then  
+            git_sparse_clone master "https://github.com/openwrt/luci" applications/luci-app-ttyd  
+            git_sparse_clone main "https://github.com/kiddin9/kwrt-packages" luci-app-quickstart quickstart \
+            luci-app-control-timewol luci-app-control-webrestriction luci-app-control-weburl luci-app-wechatpush luci-theme-argon luci-app-argon-config 
+
+          # 更新 openwrt 分支  
+          elif [ "${{ matrix.branch }}" == "openwrt" ]; then  
+            git_sparse_clone master "https://github.com/coolsnowwolf/lede" package/lean/default-settings  
+            git_sparse_clone main "https://github.com/kiddin9/kwrt-packages" luci-app-quickstart quickstart luci-app-vlmcsd vlmcsd \
+            luci-app-control-timewol luci-app-control-webrestriction luci-app-control-weburl  luci-app-wechatpush luci-theme-argon luci-app-argon-config luci-app-zerotier \
+            luci-app-unblockneteasemusic UnblockNeteaseMusic luci-app-syncdial luci-app-socat luci-app-samba4 luci-app-cifs-mount
+
+          # 更新 immortalwrt 分支  
+          elif [ "${{ matrix.branch }}" == "immortalwrt" ]; then  
+            git_sparse_clone main "https://github.com/kiddin9/kwrt-packages.git" luci-app-control-webrestriction luci-app-control-weburl
+          fi  
+          
+      - name: Language Management  
+        run: |  
+         if ls -d luci-app-*/po > /dev/null 2>&1; then  
+           for dir in luci-app-*/po; do  
+             ls -d "$dir"/*/ | grep -v '/zh-cn/' | grep -v '/zh_Hans/' | xargs rm -rf
+           done
+         fi   
+         for I in $(find . -type d -name "zh-cn"); do  
+           [ -d "${I/zh-cn/zh_Hans}" ] && continue  
+           cp -rf "$I" "${I/zh-cn/zh_Hans}"  
+         done  
+         for I in $(find . -type d -name "zh_Hans"); do  
+           [ -d "${I/zh_Hans/zh-cn}" ] && continue  
+           cp -rf "$I" "${I/zh_Hans/zh-cn}"  
+         done
+     
+      - name: Replace include in Makefile  
+        run: |  
+          replace_include() {  
+              local filepath="$1"  
+              if grep -q 'include ../../luci.mk' "$filepath"; then  
+                  sed -i 's|include ../../luci.mk|include $(TOPDIR)/feeds/luci/luci.mk|' "$filepath"  
+                  echo "Replaced in: $filepath"  
+              fi  
+          }  
+          export -f replace_include  
+          find . -name "Makefile" -exec bash -c 'replace_include "$0"' {} \;  
+               
+      - name: Apply Changes  
+        run: |  
+          Emoji=("🎉" "🤞" "✨" "🎁" "🎈" "🎄" "🎨" "💋" "🍓" "🍕" "🍉" "💐" "🌴" "🚀" "🛸" "🗽" "⛅" "🌈" "🔥" "⛄" "🐶" "🏅" "🦄" "🐤")  
+          git add .  
+          git commit -m "${Emoji[$RANDOM % ${#Emoji[@]}]} Sync $(date +%Y-%m-%d" "%H:%M:%S)" || echo "No changes to commit"    
+          git push -f
+       
+      - name: SSH connection to Actions
+        uses: kiddin9/debugger-action@master
+        if: github.event.inputs.ssh == 'true'
+     
+      - name: Delete workflow runs  
+        uses: Mattraks/delete-workflow-runs@main  
+        continue-on-error: true  
+        with:  
+          retain_days: 2  
+          keep_minimum_runs: 4
