@@ -19,7 +19,7 @@ on:
 
 jobs:  
   update-packages:  
-    if: github.event.repository.owner.id == github.event.sender.id  
+    if: github.event.repository.owner.id == github.event.sender.id || ! github.event.sender.id  
     runs-on: ubuntu-latest  
     strategy:  
       matrix:  
