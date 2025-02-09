@@ -1,11 +1,11 @@
 # packages
 🤖 Lede和OpenWrt 常用插件库
-[packages](https://github.com/vison-v/packages)
+[packages](https://github.com/somemoo/OpenWrt-packages)
 
 ## 使用
 Openwrt:
 ```
-sed -i '$a src-git custou-packages https://github.com/vison-v/packages;openwrt' feeds.conf.default
+sed -i '$a src-git custou-packages https://github.com/somemoo/OpenWrt-packages;openwrt' feeds.conf.default
 ./scripts/feeds clean
 ./scripts/feeds update -a
 ./scripts/feeds install -a
@@ -13,7 +13,7 @@ make menuconfig
 ```
 Lede:
 ```
-sed -i '$a custou-packages https://github.com/vison-v/packages;lede' feeds.conf.default
+sed -i '$a custou-packages https://github.com/somemoo/OpenWrt-packages;lede' feeds.conf.default
 ./scripts/feeds clean
 ./scripts/feeds update -a
 ./scripts/feeds install -a
