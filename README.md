@@ -1,6 +1,6 @@
 # packages
 🤖 Lede和OpenWrt 常用插件库
-[packages](https://github.com/somemoo/OpenWrt-packages)
+[OpenWrt-packages](https://github.com/somemoo/OpenWrt-packages)
 
 ## 使用
 Openwrt:
