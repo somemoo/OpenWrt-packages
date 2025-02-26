@@ -2,6 +2,10 @@
 🤖 Lede和OpenWrt 常用插件库
 [OpenWrt-packages](https://github.com/somemoo/OpenWrt-packages)
 
+[![Merge-upstream](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml/badge.svg?branch=lede)](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml)
+[![Merge-upstream](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml/badge.svg?branch=immortalwrt)](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml)
+[![Merge-upstream](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml/badge.svg?branch=openwrt)](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml)
+
 ## 使用
 Openwrt:
 ```
