@@ -2,7 +2,7 @@
 🤖 Lede和OpenWrt 常用插件库
 [OpenWrt-packages](https://github.com/somemoo/OpenWrt-packages)
 
-
+[![Merge-upstream](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml/badge.svg)](https://github.com/somemoo/OpenWrt-packages/actions/workflows/Merge-upstream.yml)
 
 ## 使用
 Openwrt:
