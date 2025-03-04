@@ -50,7 +50,7 @@ jobs:
           shopt -s extglob  
           set +e  
           git rm -r --cache * >/dev/null 2>&1 &  
-          #rm -rf `find ./* -maxdepth 0 -type d` >/dev/null 2>&1  
+          # rm -rf `find ./* -maxdepth 0 -type d` >/dev/null 2>&1  
           rm -rf $(find ./* -maxdepth 0 -type d -not -name 'golang') >/dev/null 2>&1
           
           function git_clone() {  
