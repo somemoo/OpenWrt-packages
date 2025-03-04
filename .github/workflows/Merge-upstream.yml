@@ -50,7 +50,8 @@ jobs:
           shopt -s extglob  
           set +e  
           git rm -r --cache * >/dev/null 2>&1 &  
-          rm -rf `find ./* -maxdepth 0 -type d` >/dev/null 2>&1  
+          #rm -rf `find ./* -maxdepth 0 -type d` >/dev/null 2>&1  
+          rm -rf $(find ./* -maxdepth 0 -type d -not -name 'golang') >/dev/null 2>&1
           
           function git_clone() {  
             git clone --depth 1 $1 $2  
@@ -94,7 +95,7 @@ jobs:
           git_clone https://github.com/xiaorouji/openwrt-passwall2 passwall2 && mv -n passwall2/luci-app-passwall2 ./; rm -rf passwall2  
           git_clone https://github.com/xiaorouji/openwrt-passwall-packages passwaii && rm -rf passwaii/{geoview,.github} && mvdir passwaii  
           git_clone https://github.com/kenzok8/small && rm -rf small/{luci-app-passwall,luci-app-passwall2} && mvdir small  
-          git_clone https://github.com/kenzok8/golang lang && mkdir golang && mv -n `find lang/* -maxdepth 0` ./golang; rm -rf lang  
+          # git_clone https://github.com/kenzok8/golang lang && mkdir golang && mv -n `find lang/* -maxdepth 0` ./golang; rm -rf lang  
           git_clone https://github.com/pymumu/openwrt-smartdns && mkdir smartdns && mv -n `find openwrt-smartdns/* -maxdepth 0` ./smartdns; rm -rf openwrt-smartdns  
           git_clone https://github.com/pymumu/luci-app-smartdns smart && mkdir luci-app-smartdns && mv -n `find smart/* -maxdepth 0` ./luci-app-smartdns; rm -rf smart  
       
