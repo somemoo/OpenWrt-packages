@@ -15,7 +15,7 @@ make menuconfig
 ```
 Lede:
 ```
-sed -i '$a custou-packages https://github.com/somemoo/OpenWrt-packages;lede' feeds.conf.default
+sed -i '$a src-git custou-packages https://github.com/somemoo/OpenWrt-packages;lede' feeds.conf.default
 ./scripts/feeds clean
 ./scripts/feeds update -a
 ./scripts/feeds install -a
